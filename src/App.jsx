@@ -76,6 +76,21 @@ function App() {
     }
   }
 
+  async function toggleConcluida(nota) {
+    try {
+      const res = await fetch(`${API}/notas/${nota.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concluida: !nota.concluida }),
+      })
+      if (!res.ok) throw new Error()
+      mostrarSucesso(nota.concluida ? 'Marcado como pendente.' : 'Marcado como concluído.')
+      buscarNotas()
+    } catch {
+      mostrarErro('Erro ao atualizar status da nota.')
+    }
+  }
+
   function iniciarEdicao(nota) {
     setForm({ titulo: nota.titulo, conteudo: nota.conteudo })
     setEditandoId(nota.id)
@@ -169,8 +184,19 @@ function App() {
 
           <div className="grid">
             {notas.map(nota => (
-              <article key={nota.id} className="card nota-card">
-                <h3 className="nota-titulo">{nota.titulo}</h3>
+              <article key={nota.id} className={`card nota-card ${nota.concluida ? 'concluida' : ''}`}>
+                <div className="nota-header">
+                  <label className="checkbox-wrapper">
+                    <input
+                      type="checkbox"
+                      checked={nota.concluida || false}
+                      onChange={() => toggleConcluida(nota)}
+                      className="checkbox-input"
+                    />
+                    <span className="checkbox-custom"></span>
+                  </label>
+                  <h3 className="nota-titulo">{nota.titulo}</h3>
+                </div>
                 <p className="nota-conteudo">{nota.conteudo}</p>
                 <div className="nota-meta">
                   <small>Criado: {formatarData(nota.criadoEm)}</small>

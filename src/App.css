@@ -180,6 +180,75 @@ body {
 .nota-acoes { display: flex; gap: .5rem; flex-wrap: wrap; }
 .nota-acoes .btn { font-size: .82rem; padding: .4rem .8rem; }
 
+/* ── Checkbox Customizado ─────────────────────── */
+.nota-header {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+}
+
+.checkbox-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: .15rem;
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+
+.checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 4px;
+  display: inline-block;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+
+.checkbox-wrapper:hover .checkbox-custom {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(37,99,235,.2);
+}
+
+.checkbox-input:checked + .checkbox-custom {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.checkbox-input:checked + .checkbox-custom::after {
+  content: '✓';
+  color: white;
+  position: absolute;
+  top: -2px;
+  left: 4px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* ── Nota Concluída ───────────────────────────── */
+.nota-card.concluida {
+  opacity: 0.75;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.nota-card.concluida .nota-titulo {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.nota-card.concluida .nota-conteudo {
+  color: #cbd5e1;
+}
+
 /* ── Estados ──────────────────────────────────── */
 .info-text { color: var(--muted); text-align: center; padding: 2rem; }
 
