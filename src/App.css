@@ -17,6 +17,12 @@
   border: 1px solid #e6e6e6;
   padding: 12px;
   border-radius: 8px;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 
 .card h3 {
@@ -25,7 +31,28 @@
 }
 
 .card p {
-  margin: 0;
+  margin: 0 0 12px 0;
   color: #444;
   font-size: 14px;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #1f6feb;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #195fc1;
+}
+
+.card button {
+  background: #d9534f;
+}
+
+.card button:hover {
+  background: #c53f3b;
 }
