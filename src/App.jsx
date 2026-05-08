@@ -71,6 +71,22 @@ export default function App() {
     }
   };
 
+  const toggleConcluida = async (id, estadoAtual) => {
+    try {
+      const res = await fetch(`/api/notes/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concluida: !estadoAtual }),
+      });
+      if (!res.ok) throw new Error('Falha ao atualizar conclusão');
+      const atualizado = await res.json();
+      setNotas((prev) => prev.map((n) => (n.id === atualizado.id ? atualizado : n)));
+    } catch (err) {
+      console.error('Erro ao trocar conclusão:', err);
+      alert('Não foi possível atualizar o status.');
+    }
+  };
+
   return (
     <div className="app">
       <h1>Notas</h1>
@@ -94,12 +110,14 @@ export default function App() {
             onChange={(e) => setForm({ ...form, conteudo: e.target.value })}
             required
           />
-          <label>
+          <label className="round-checkbox-label">
             <input
+              className="round-checkbox-input"
               type="checkbox"
               checked={form.concluida}
               onChange={(e) => setForm({ ...form, concluida: e.target.checked })}
-            />{' '}
+            />
+            <span className="round-checkbox" />
             Concluída
           </label>
           <button type="submit">Salvar</button>
@@ -108,9 +126,23 @@ export default function App() {
 
       <div className="notes">
         {notas.map((n) => (
-          <div key={n.id} className="card">
-            <h3>{n.titulo}</h3>
-            <p>{n.conteudo}</p>
+          <div key={n.id} className={`card ${n.concluida ? 'done' : ''}`}>
+            <div className="card-left">
+              <label className="round-checkbox-label">
+                <input
+                  className="round-checkbox-input"
+                  type="checkbox"
+                  checked={!!n.concluida}
+                  onChange={() => toggleConcluida(n.id, !!n.concluida)}
+                />
+                <span className="round-checkbox" />
+              </label>
+              <div className="card-content">
+                <h3>{n.titulo}</h3>
+                <p>{n.conteudo}</p>
+              </div>
+            </div>
+
             <div className="card-actions">
               <button onClick={() => iniciarEdicao(n)}>✏️ Editar</button>
               <button onClick={() => excluirNota(n.id)}>🗑️ Excluir</button>

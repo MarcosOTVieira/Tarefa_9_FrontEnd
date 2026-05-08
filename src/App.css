@@ -17,49 +17,68 @@
   border: 1px solid #e6e6e6;
   padding: 12px;
   border-radius: 8px;
-  transition: box-shadow 0.15s, transform 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
+.card.done {
+  opacity: 0.8;
+  background: #f7fff7;
 }
 
-.card h3 {
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-content h3 {
   margin: 0 0 6px 0;
   font-size: 16px;
 }
 
-.card p {
-  margin: 0 0 12px 0;
+.card-content p {
+  margin: 0;
   color: #444;
   font-size: 14px;
 }
 
-button {
-  border: 0;
-  border-radius: 6px;
-  padding: 8px 12px;
-  background: #1f6feb;
-  color: #fff;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #195fc1;
-}
-
-.card-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .card-actions button {
-  background: #d9534f;
+  margin-left: 8px;
 }
 
-.card-actions button:hover {
-  background: #c53f3b;
+/* Round checkbox styles */
+.round-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.round-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.round-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #888;
+  display: inline-block;
+  box-sizing: border-box;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.round-checkbox-label .round-checkbox-input:checked + .round-checkbox {
+  background: #27ae60;
+  border-color: #27ae60;
 }
 
 .note-form {
@@ -67,10 +86,6 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #f9fafb;
-  padding: 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
 }
 
 .note-form input,
@@ -80,10 +95,4 @@ button:hover {
   border-radius: 6px;
   width: 100%;
   box-sizing: border-box;
-}
-
-.note-form label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
