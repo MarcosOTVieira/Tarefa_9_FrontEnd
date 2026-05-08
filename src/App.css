@@ -1,0 +1,31 @@
+.app {
+  font-family: Arial, sans-serif;
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.card h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.card p {
+  margin: 0;
+  color: #444;
+  font-size: 14px;
+}
