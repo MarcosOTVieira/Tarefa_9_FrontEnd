@@ -56,3 +56,29 @@ button:hover {
 .card button:hover {
   background: #c53f3b;
 }
+
+.note-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f9fafb;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.note-form input,
+.note-form textarea {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.note-form label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
