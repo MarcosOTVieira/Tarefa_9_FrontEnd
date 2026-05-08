@@ -1,155 +1,198 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import { useState, useEffect } from 'react'
+import './App.css'
 
-export default function App() {
-  const [notas, setNotas] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ titulo: '', conteudo: '', concluida: false });
-  const [editandoId, setEditandoId] = useState(null);
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch('/api/notes');
-        if (!res.ok) throw new Error('Network response not ok');
-        const data = await res.json();
-        setNotas(data);
-      } catch (err) {
-        console.error('Erro ao buscar notas:', err);
-        setNotas([]);
-      }
-    };
-    load();
-  }, []);
+function App() {
+  const [notas, setNotas] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState('')
+  const [sucesso, setSucesso] = useState('')
 
-  const iniciarEdicao = (nota) => {
-    setForm({ titulo: nota.titulo || '', conteudo: nota.conteudo || '', concluida: !!nota.concluida });
-    setEditandoId(nota.id);
-    setShowForm(true);
-  };
+  const [form, setForm] = useState({ titulo: '', conteudo: '' })
+  const [editandoId, setEditandoId] = useState(null)
+  const [mostrarForm, setMostrarForm] = useState(false)
 
-  const salvarNota = async (e) => {
-    e.preventDefault();
+  function mostrarSucesso(msg) {
+    setSucesso(msg)
+    setTimeout(() => setSucesso(''), 3000)
+  }
+
+  function mostrarErro(msg) {
+    setErro(msg)
+    setTimeout(() => setErro(''), 4000)
+  }
+
+  async function buscarNotas() {
+    setLoading(true)
     try {
-      if (editandoId) {
-        const res = await fetch(`/api/notes/${editandoId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        });
-        if (!res.ok) throw new Error('Falha ao atualizar');
-        const atualizado = await res.json();
-        setNotas((prev) => prev.map((n) => (n.id === atualizado.id ? atualizado : n)));
-      } else {
-        const res = await fetch('/api/notes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        });
-        if (!res.ok) throw new Error('Falha ao criar');
-        const nova = await res.json();
-        setNotas((prev) => [nova, ...prev]);
-      }
-      setForm({ titulo: '', conteudo: '', concluida: false });
-      setEditandoId(null);
-      setShowForm(false);
-    } catch (err) {
-      console.error('Erro ao salvar nota:', err);
-      alert('Não foi possível salvar a nota.');
+      const res = await fetch(`${API}/notas`)
+      if (!res.ok) throw new Error()
+      const dados = await res.json()
+      setNotas(dados)
+    } catch {
+      mostrarErro('Não foi possível carregar as notas. Verifique se a API está online.')
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
-  const excluirNota = async (id) => {
-    if (!confirm('Confirma exclusão da nota?')) return;
-    try {
-      const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Falha ao excluir');
-      setNotas((prev) => prev.filter((n) => n.id !== id));
-    } catch (err) {
-      console.error('Erro ao excluir nota:', err);
-      alert('Não foi possível excluir a nota.');
+  useEffect(() => { buscarNotas() }, [])
+
+  async function salvarNota(e) {
+    e.preventDefault()
+    if (!form.titulo.trim() || !form.conteudo.trim()) {
+      mostrarErro('Preencha o título e o conteúdo.')
+      return
     }
-  };
 
-  const toggleConcluida = async (id, estadoAtual) => {
+    const url = editandoId ? `${API}/notas/${editandoId}` : `${API}/notas`
+    const method = editandoId ? 'PUT' : 'POST'
+
     try {
-      const res = await fetch(`/api/notes/${id}`, {
-        method: 'PATCH',
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ concluida: !estadoAtual }),
-      });
-      if (!res.ok) throw new Error('Falha ao atualizar conclusão');
-      const atualizado = await res.json();
-      setNotas((prev) => prev.map((n) => (n.id === atualizado.id ? atualizado : n)));
-    } catch (err) {
-      console.error('Erro ao trocar conclusão:', err);
-      alert('Não foi possível atualizar o status.');
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error()
+      mostrarSucesso(editandoId ? 'Nota atualizada com sucesso!' : 'Nota criada com sucesso!')
+      resetarForm()
+      buscarNotas()
+    } catch {
+      mostrarErro('Erro ao salvar a nota.')
     }
-  };
+  }
+
+  async function excluirNota(id) {
+    if (!confirm('Deseja realmente excluir esta nota?')) return
+    try {
+      const res = await fetch(`${API}/notas/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      mostrarSucesso('Nota excluída com sucesso.')
+      buscarNotas()
+    } catch {
+      mostrarErro('Erro ao excluir a nota.')
+    }
+  }
+
+  function iniciarEdicao(nota) {
+    setForm({ titulo: nota.titulo, conteudo: nota.conteudo })
+    setEditandoId(nota.id)
+    setMostrarForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function resetarForm() {
+    setForm({ titulo: '', conteudo: '' })
+    setEditandoId(null)
+    setMostrarForm(false)
+  }
+
+  function formatarData(iso) {
+    return new Date(iso).toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    })
+  }
 
   return (
     <div className="app">
-      <h1>Notas</h1>
-
-      <button onClick={() => { setShowForm((s) => !s); setEditandoId(null); setForm({ titulo: '', conteudo: '', concluida: false }); }}>
-        {showForm ? 'Cancelar' : '+ Nova Nota'}
-      </button>
-
-      {showForm && (
-        <form onSubmit={salvarNota} className="note-form">
-          <h2>{editandoId ? 'Editar nota' : 'Nova nota'}</h2>
-          <input
-            placeholder="Título"
-            value={form.titulo}
-            onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Conteúdo"
-            value={form.conteudo}
-            onChange={(e) => setForm({ ...form, conteudo: e.target.value })}
-            required
-          />
-          <label className="round-checkbox-label">
-            <input
-              className="round-checkbox-input"
-              type="checkbox"
-              checked={form.concluida}
-              onChange={(e) => setForm({ ...form, concluida: e.target.checked })}
-            />
-            <span className="round-checkbox" />
-            Concluída
-          </label>
-          <button type="submit">Salvar</button>
-        </form>
-      )}
-
-      <div className="notes">
-        {notas.map((n) => (
-          <div key={n.id} className={`card ${n.concluida ? 'done' : ''}`}>
-            <div className="card-left">
-              <label className="round-checkbox-label">
-                <input
-                  className="round-checkbox-input"
-                  type="checkbox"
-                  checked={!!n.concluida}
-                  onChange={() => toggleConcluida(n.id, !!n.concluida)}
-                />
-                <span className="round-checkbox" />
-              </label>
-              <div className="card-content">
-                <h3>{n.titulo}</h3>
-                <p>{n.conteudo}</p>
-              </div>
-            </div>
-
-            <div className="card-actions">
-              <button onClick={() => iniciarEdicao(n)}>✏️ Editar</button>
-              <button onClick={() => excluirNota(n.id)}>🗑️ Excluir</button>
-            </div>
+      <header className="header">
+        <div className="header-inner">
+          <div className="header-logo">
+            <span className="logo-icon">📝</span>
+            <h1>Gerenciador de Notas</h1>
           </div>
-        ))}
-      </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => { resetarForm(); setMostrarForm(!mostrarForm) }}
+          >
+            {mostrarForm ? '✕ Cancelar' : '+ Nova Nota'}
+          </button>
+        </div>
+      </header>
+
+      <main className="main">
+        {sucesso && <div className="alerta alerta-sucesso">✓ {sucesso}</div>}
+        {erro    && <div className="alerta alerta-erro">✕ {erro}</div>}
+
+        {mostrarForm && (
+          <section className="card form-card">
+            <h2>{editandoId ? '✏️ Editar Nota' : '➕ Nova Nota'}</h2>
+            <form onSubmit={salvarNota}>
+              <div className="campo">
+                <label htmlFor="titulo">Título</label>
+                <input
+                  id="titulo"
+                  type="text"
+                  placeholder="Título da nota"
+                  value={form.titulo}
+                  onChange={e => setForm({ ...form, titulo: e.target.value })}
+                />
+              </div>
+              <div className="campo">
+                <label htmlFor="conteudo">Conteúdo</label>
+                <textarea
+                  id="conteudo"
+                  rows={5}
+                  placeholder="Escreva sua nota aqui..."
+                  value={form.conteudo}
+                  onChange={e => setForm({ ...form, conteudo: e.target.value })}
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="btn btn-primary">
+                  {editandoId ? 'Salvar alterações' : 'Criar nota'}
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={resetarForm}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        <section className="lista-section">
+          <div className="lista-header">
+            <h2>Minhas Notas <span className="badge">{notas.length}</span></h2>
+          </div>
+
+          {loading && <p className="info-text">Carregando...</p>}
+
+          {!loading && notas.length === 0 && (
+            <div className="vazio">
+              <span>📭</span>
+              <p>Nenhuma nota ainda. Crie a primeira!</p>
+            </div>
+          )}
+
+          <div className="grid">
+            {notas.map(nota => (
+              <article key={nota.id} className="card nota-card">
+                <h3 className="nota-titulo">{nota.titulo}</h3>
+                <p className="nota-conteudo">{nota.conteudo}</p>
+                <div className="nota-meta">
+                  <small>Criado: {formatarData(nota.criadoEm)}</small>
+                  {nota.atualizadoEm !== nota.criadoEm && (
+                    <small>Editado: {formatarData(nota.atualizadoEm)}</small>
+                  )}
+                </div>
+                <div className="nota-acoes">
+                  <button className="btn btn-outline" onClick={() => iniciarEdicao(nota)}>
+                    ✏️ Editar
+                  </button>
+                  <button className="btn btn-danger" onClick={() => excluirNota(nota.id)}>
+                    🗑️ Excluir
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
-  );
+  )
 }
+
+export default App
