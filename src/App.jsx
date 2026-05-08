@@ -5,6 +5,7 @@ export default function App() {
   const [notas, setNotas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ titulo: '', conteudo: '', concluida: false });
+  const [editandoId, setEditandoId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -21,18 +22,36 @@ export default function App() {
     load();
   }, []);
 
+  const iniciarEdicao = (nota) => {
+    setForm({ titulo: nota.titulo || '', conteudo: nota.conteudo || '', concluida: !!nota.concluida });
+    setEditandoId(nota.id);
+    setShowForm(true);
+  };
+
   const salvarNota = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error('Falha ao salvar');
-      const nova = await res.json();
-      setNotas((prev) => [nova, ...prev]);
+      if (editandoId) {
+        const res = await fetch(`/api/notes/${editandoId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        });
+        if (!res.ok) throw new Error('Falha ao atualizar');
+        const atualizado = await res.json();
+        setNotas((prev) => prev.map((n) => (n.id === atualizado.id ? atualizado : n)));
+      } else {
+        const res = await fetch('/api/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        });
+        if (!res.ok) throw new Error('Falha ao criar');
+        const nova = await res.json();
+        setNotas((prev) => [nova, ...prev]);
+      }
       setForm({ titulo: '', conteudo: '', concluida: false });
+      setEditandoId(null);
       setShowForm(false);
     } catch (err) {
       console.error('Erro ao salvar nota:', err);
@@ -56,10 +75,13 @@ export default function App() {
     <div className="app">
       <h1>Notas</h1>
 
-      <button onClick={() => setShowForm((s) => !s)}>{showForm ? 'Cancelar' : '+ Nova Nota'}</button>
+      <button onClick={() => { setShowForm((s) => !s); setEditandoId(null); setForm({ titulo: '', conteudo: '', concluida: false }); }}>
+        {showForm ? 'Cancelar' : '+ Nova Nota'}
+      </button>
 
       {showForm && (
         <form onSubmit={salvarNota} className="note-form">
+          <h2>{editandoId ? 'Editar nota' : 'Nova nota'}</h2>
           <input
             placeholder="Título"
             value={form.titulo}
@@ -89,7 +111,10 @@ export default function App() {
           <div key={n.id} className="card">
             <h3>{n.titulo}</h3>
             <p>{n.conteudo}</p>
-            <button onClick={() => excluirNota(n.id)}>🗑️ Excluir</button>
+            <div className="card-actions">
+              <button onClick={() => iniciarEdicao(n)}>✏️ Editar</button>
+              <button onClick={() => excluirNota(n.id)}>🗑️ Excluir</button>
+            </div>
           </div>
         ))}
       </div>

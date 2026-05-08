@@ -49,11 +49,16 @@ button:hover {
   background: #195fc1;
 }
 
-.card button {
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-actions button {
   background: #d9534f;
 }
 
-.card button:hover {
+.card-actions button:hover {
   background: #c53f3b;
 }
 
